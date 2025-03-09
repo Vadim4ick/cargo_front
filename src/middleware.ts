@@ -6,7 +6,7 @@ export async function middleware(req: NextRequest) {
   const url = new URL(req.url);
   const pathname = url.pathname;
 
-  if (pathname.includes("/login")) {
+  if (pathname.includes("/login") || pathname.includes("/register")) {
     return protectedLogin(req);
   }
 

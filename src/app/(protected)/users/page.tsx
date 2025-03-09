@@ -13,18 +13,20 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
-import { invitationServices } from "@/services/invitation.service";
 import { useGetUsersAll } from "@/hooks/useGetUsersAll";
 import { Loader } from "@/components/ui/preloader";
 import { User } from "@/services/users.service";
 import { EditUsersModal } from "@/components/EditUsersModal";
 import { useDeleteUserById } from "@/hooks/useDeleteUserById";
-import { useGetProfile } from "@/hooks/useGetProfie";
+import { useProfile } from "@/store/profile";
+import { useSendInvitation } from "@/hooks/useSendInvitation";
 
 const UsersPage = () => {
   const [newUserEmail, setNewUserEmail] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  const { user: profile } = useProfile();
 
   const openEditModal = (user: User) => {
     setCurrentUser(user);
@@ -33,18 +35,25 @@ const UsersPage = () => {
 
   const { data: users, isLoading } = useGetUsersAll();
   const { mutate } = useDeleteUserById();
+  const { mutate: sendInvitation, isPending } = useSendInvitation();
 
   const handleAddUser = async () => {
-    await invitationServices.sendInvitation({ email: newUserEmail });
+    // await invitationServices.sendInvitation({ email: newUserEmail });
+    sendInvitation(
+      { email: newUserEmail },
+      {
+        onSuccess: () => {
+          setNewUserEmail("");
+        },
+      }
+    );
   };
 
   const handleDeleteUser = (id: number) => {
     mutate({ id: id });
   };
 
-  const { data, isLoading: isLoadingProfile } = useGetProfile();
-
-  if (isLoading || isLoadingProfile) {
+  if (isLoading) {
     return (
       <div className="bg-gray-100 flex flex-col h-full p-6">
         <Loader className="absolute left-1/2 top-1/2 size-10" />
@@ -86,7 +95,9 @@ const UsersPage = () => {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button onClick={handleAddUser}>Добавить</Button>
+                  <Button disabled={isPending} onClick={handleAddUser}>
+                    Добавить
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -111,7 +122,7 @@ const UsersPage = () => {
                       <td className="px-6 py-4 border-b">{user.role}</td>
                       <td className="px-6 py-4 border-b">
                         <Button
-                          disabled={user.id === data?.id}
+                          disabled={user.id === profile?.id}
                           variant="destructive"
                           size="sm"
                           onClick={() => handleDeleteUser(user.id)}

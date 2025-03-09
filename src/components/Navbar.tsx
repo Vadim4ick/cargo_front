@@ -4,13 +4,17 @@ import Link from "next/link";
 import { Button } from "./ui/button";
 import { authServices } from "@/services/auth.service";
 import { useRouter } from "next/navigation";
+import { useProfile } from "@/store/profile";
 
 const Navbar = () => {
   const router = useRouter();
 
+  const { user, setUser } = useProfile();
+
   const handleLogout = async () => {
     await authServices.logout();
 
+    setUser(null);
     router.push("/login");
   };
 
@@ -23,18 +27,22 @@ const Navbar = () => {
         </Link>
 
         {/* Навигация */}
-        <div className="flex space-x-6 items-center">
-          <Link href="/" className="hover:text-blue-300 transition">
-            Главная
-          </Link>
-          <Link href="/users" className="hover:text-blue-300 transition">
-            Пользователи
-          </Link>
+        {user && (
+          <div className="flex space-x-6 items-center">
+            <Link href="/" className="hover:text-blue-300 transition">
+              Главная
+            </Link>
+            {user.role === "SUPERADMIN" && (
+              <Link href="/users" className="hover:text-blue-300 transition">
+                Пользователи
+              </Link>
+            )}
 
-          <Button variant={"secondary"} onClick={handleLogout}>
-            Выйти
-          </Button>
-        </div>
+            <Button variant={"secondary"} onClick={handleLogout}>
+              Выйти
+            </Button>
+          </div>
+        )}
       </div>
     </nav>
   );

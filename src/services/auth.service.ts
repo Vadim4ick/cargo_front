@@ -40,6 +40,38 @@ class AuthServices {
     }
   }
 
+  async register({
+    email,
+    username,
+    password,
+    inviteToken,
+  }: {
+    username: string;
+    email: string;
+    password: string;
+    inviteToken: string;
+  }) {
+    try {
+      const { data } = await $api.post<{
+        message: string;
+        user: User;
+      }>(`${this._Auth}/register`, { email, username, password, inviteToken });
+
+      toast.success(data.message);
+
+      return data;
+    } catch (error) {
+      if (isAxiosError(error) && error.response) {
+        toast.error(
+          (error.response.data as { message?: string })?.message ||
+            "Ошибка запроса"
+        );
+      } else {
+        toast.error("Произошла непредвиденная ошибка");
+      }
+    }
+  }
+
   //   async register({ email, inn }: { email: string; inn: string }) {
   //     const { data } = await $api.post<{
   //       message: string;
