@@ -18,6 +18,7 @@ import {
 import { Input } from "./ui/input";
 import { useState } from "react";
 import { useEditUserById } from "@/hooks/useEditUserById";
+import { useProfile } from "@/store/profile";
 
 const EditUsersModal = ({
   open,
@@ -30,6 +31,8 @@ const EditUsersModal = ({
 }) => {
   const [name, setName] = useState(user?.username);
   const [role, setRole] = useState(user?.role);
+
+  const { user: profile } = useProfile();
 
   const { mutate, isPending } = useEditUserById();
 
@@ -70,24 +73,26 @@ const EditUsersModal = ({
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Роль
-            </label>
+          {profile?.id !== user.id && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Роль
+              </label>
 
-            <Select value={role} onValueChange={setRole}>
-              <SelectTrigger>
-                <SelectValue placeholder="Выберите роль" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem disabled value="SUPERADMIN">
-                  Суперадмин
-                </SelectItem>
-                <SelectItem value="EDITOR">Редактор</SelectItem>
-                <SelectItem value="USER">Пользователь</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              <Select value={role} onValueChange={setRole}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите роль" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem disabled value="SUPERADMIN">
+                    Суперадмин
+                  </SelectItem>
+                  <SelectItem value="EDITOR">Редактор</SelectItem>
+                  <SelectItem value="USER">Пользователь</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button
