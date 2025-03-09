@@ -3,19 +3,16 @@ import { EnumTokens } from "@/const/const";
 import { isAxiosError } from "axios";
 import Cookies from "js-cookie";
 import { toast } from "sonner";
+import { User } from "./users.service";
 
 class AuthServices {
   private _Auth = "/auth";
 
-  //   async getMe() {
-  //     const { data } = await $apiAuth.get<{ data: Profile }>(`${this._Auth}/me`);
+  async getMe() {
+    const { data } = await $apiAuth.get<User>(`/profile`);
 
-  //     if (data?.data) {
-  //       setProfile(data.data);
-  //     }
-
-  //     return data;
-  //   }
+    return data;
+  }
 
   async login({ email, password }: { email: string; password: string }) {
     try {
