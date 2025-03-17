@@ -12,9 +12,41 @@ import { ViewIcon } from "lucide-react";
 import { useGetAllTrucks } from "@/hooks/useGetAllTrucks";
 import { Cargo } from "@/services/truck.service";
 
+// async function urlToFile(
+//   url: string,
+//   fileName: string,
+//   mimeType: string
+// ): Promise<File> {
+//   const response = await fetch(url);
+//   const blob = await response.blob();
+//   return new File([blob], fileName, { type: mimeType });
+// }
+
 export default function Home() {
   const { trucks, isLoading } = useGetAllTrucks();
+  // const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
+  // console.log(selectedImage);
+
+  // const { data: cargo, isLoading: cargoLoading } = useGetCargoById({
+  //   id: "564085b6-71eb-47fa-86d7-07aa5a87f3ae",
+  // });
+  // const { mutate } = useUpdateCargoById();
+
+  // console.log(cargo);
+
+  // const onClick = () => {
+  //   if (!selectedImage) return;
+
+  //   mutate({
+  //     id: "564085b6-71eb-47fa-86d7-07aa5a87f3ae",
+  //     body: {
+  //       cargoPhoto: selectedImage,
+  //     },
+  //   });
+  // };
+
+  // console.log(cargo);
   // Состояние для выбранного таба (грузовика)
   const [activeTruckIndex, setActiveTruckIndex] = useState(0);
   const activeTruck =
@@ -108,6 +140,22 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
             Данные о перевозках
           </h2>
+
+          {/* <div className="p-6">
+            <h2 className="text-lg font-bold mb-4">Загрузка изображения</h2>
+            <ImageUploader
+              defaultImage={`http://localhost:3000/${cargo?.cargoPhoto?.url}`}
+              onChange={setSelectedImage}
+            />
+            {selectedImage && (
+              <p className="mt-2 text-sm">
+                Выбранный файл: {selectedImage.name}
+              </p>
+            )}
+
+            <button onClick={onClick}>Загрузить</button>
+          </div> */}
+
           <div className="bg-gray-50 p-6 rounded-lg shadow-md min-h-[400px] flex flex-col justify-between">
             <div>
               {/* Навигация табов */}
