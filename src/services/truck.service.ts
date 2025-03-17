@@ -8,6 +8,7 @@ export interface Cargo {
   payoutAmount: number;
   payoutTerms: string;
   createdAt: string;
+  cargoPhoto?: File;
 }
 
 export interface Truck {
