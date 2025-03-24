@@ -72,15 +72,6 @@ class AuthServices {
     }
   }
 
-  //   async register({ email, inn }: { email: string; inn: string }) {
-  //     const { data } = await $api.post<{
-  //       message: string;
-  //       data: { message: string; user_id: number };
-  //     }>(`${this._Auth}/register`, { email, inn });
-
-  //     return data;
-  //   }
-
   private _saveTokenStorage(accessToken: string) {
     Cookies.set(EnumTokens.ACCESS_TOKEN, accessToken, {
       domain: "localhost",
@@ -98,28 +89,6 @@ class AuthServices {
     await $apiAuth.post(`${this._Auth}/logout`);
     this.removeFromStorage();
   }
-
-  //   async confirm({
-  //     confirm_code,
-  //     user_id,
-  //   }: {
-  //     confirm_code: string;
-  //     user_id: string | number;
-  //   }) {
-  //     const { data } = await $api.post<{
-  //       data: { access_token: string };
-  //       message: string;
-  //     }>(`${this._Auth}/confirm`, {
-  //       confirm_code,
-  //       user_id,
-  //     });
-
-  //     if (data?.data.access_token) {
-  //       this._saveTokenStorage(data.data.access_token);
-  //     }
-
-  //     return data;
-  //   }
 
   async refresh(refreshToken?: string) {
     try {

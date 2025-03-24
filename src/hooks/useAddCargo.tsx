@@ -1,13 +1,13 @@
 import { cargoServices } from "@/services/cargo.service";
 import { useMutation } from "@tanstack/react-query";
 
-const useUpdateCargoById = () => {
+const useAddCargo = () => {
   const { mutate, isPending } = useMutation({
-    mutationFn: ({ id, body }: { id: string; body: FormData }) =>
-      cargoServices.updateById({ id, body }),
+    mutationFn: ({ body }: { body: FormData }) =>
+      cargoServices.addCargo({ body }),
   });
 
   return { mutate, isPending };
 };
 
-export { useUpdateCargoById };
+export { useAddCargo };
