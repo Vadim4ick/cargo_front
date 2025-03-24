@@ -11,6 +11,9 @@ import {
 import { ViewIcon } from "lucide-react";
 import { useGetAllTrucks } from "@/hooks/useGetAllTrucks";
 import { Cargo } from "@/services/truck.service";
+import { EditModalСargo } from "@/components/EditModalСargo";
+import { Button } from "@/components/ui/button";
+import { AddCargoModal } from "@/components/AddCargoModal";
 
 // async function urlToFile(
 //   url: string,
@@ -24,6 +27,7 @@ import { Cargo } from "@/services/truck.service";
 
 export default function Home() {
   const { trucks, isLoading } = useGetAllTrucks();
+  const [addModalOpen, setAddModalOpen] = useState(false);
   // const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
   // console.log(selectedImage);
@@ -81,23 +85,17 @@ export default function Home() {
       {
         header: "Редактировать",
         id: "edit",
-        cell: ({ row }) => (
-          <input
-            type="checkbox"
-            className="form-checkbox h-5 w-5 text-blue-600"
-            onChange={() => console.log("Toggle edit for", row.original)}
-          />
-        ),
+        style: { maxWidth: "80px" },
+        cell: ({ row }) => {
+          return <EditModalСargo cargo={row.original} />;
+        },
       },
       {
         header: "Подробнее",
-
-        style: {
-          maxWidth: "100px",
-        },
         id: "details",
+        style: { maxWidth: "80px" },
         cell: () => (
-          <button className="w-[150px] flex justify-center items-center">
+          <button className="flex justify-center items-center w-full">
             <ViewIcon />
           </button>
         ),
@@ -156,16 +154,25 @@ export default function Home() {
             <button onClick={onClick}>Загрузить</button>
           </div> */}
 
+          <div className="flex items-end justify-end">
+            <Button
+              onClick={() => setAddModalOpen(true)}
+              className="w-full mb-4 max-w-[200px]"
+            >
+              Добавить груз
+            </Button>
+          </div>
+
           <div className="bg-gray-50 p-6 rounded-lg shadow-md min-h-[400px] flex flex-col justify-between">
             <div>
               {/* Навигация табов */}
               <div className="mb-4 border-b border-gray-200">
-                <nav className="flex space-x-4">
+                <nav className="flex space-x-4 overflow-auto">
                   {trucks?.map((truck, index) => (
                     <button
                       key={truck.id}
                       onClick={() => setActiveTruckIndex(index)}
-                      className={`py-2 px-4 font-medium text-sm focus:outline-none ${
+                      className={`py-2 px-4 font-medium text-sm focus:outline-none whitespace-nowrap ${
                         activeTruckIndex === index
                           ? "border-b-2 border-blue-500 text-blue-500"
                           : "text-gray-500 hover:text-gray-700"
@@ -183,19 +190,27 @@ export default function Home() {
                   <thead className="bg-gray-100">
                     {table.getHeaderGroups().map((headerGroup) => (
                       <tr key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => (
-                          <th
-                            key={header.id}
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
-                          </th>
-                        ))}
+                        {headerGroup.headers.map((header) => {
+                          const customClass =
+                            header.column.id === "edit" ||
+                            header.column.id === "details"
+                              ? "w-[100px] items-center"
+                              : "";
+
+                          return (
+                            <th
+                              key={header.id}
+                              className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${customClass}`}
+                            >
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext()
+                                  )}
+                            </th>
+                          );
+                        })}
                       </tr>
                     ))}
                   </thead>
@@ -205,7 +220,7 @@ export default function Home() {
                         {row.getVisibleCells().map((cell) => (
                           <td
                             key={cell.id}
-                            className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                            className="px-6 py-4 text-sm text-gray-900"
                           >
                             {flexRender(
                               cell.column.columnDef.cell,
@@ -247,6 +262,12 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <AddCargoModal
+        isOpen={addModalOpen}
+        trucks={trucks}
+        onClose={() => setAddModalOpen(false)}
+      />
     </div>
   );
 }
