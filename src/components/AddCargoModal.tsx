@@ -13,6 +13,12 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Cargo, Truck } from "@/services/truck.service";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ru } from "date-fns/locale";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -21,6 +27,9 @@ import {
 } from "./ui/select";
 import { useAddCargo } from "@/hooks/useAddCargo";
 import { toast } from "sonner";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { format, parse } from "date-fns";
 
 interface AddCargoModalProps {
   isOpen: boolean;
@@ -46,15 +55,48 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
     truckId: "",
   });
 
-  const handleAdd = () => {
-    const formDate = new FormData();
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-    formDate.append("cargoNumber", formData.cargoNumber?.toString() || "");
-    formDate.append("date", new Date(formData.date).toISOString());
+  const validate = () => {
+    const newErrors: { [key: string]: string } = {};
+    if (!formData.cargoNumber.trim()) {
+      newErrors.cargoNumber = "Номер груза обязателен";
+    }
+    if (!formData.date) {
+      newErrors.date = "Дата обязательна";
+    }
+    if (!formData.transportationInfo.trim()) {
+      newErrors.transportationInfo = "Информация о перевозке обязательна";
+    }
+    if (formData.payoutAmount <= 0) {
+      newErrors.payoutAmount = "Сумма выплаты должна быть больше 0";
+    }
+    if (!formData.payoutTerms.trim()) {
+      newErrors.payoutTerms = "Условия выплаты обязательны";
+    }
+    if (!formData.truckId) {
+      newErrors.truckId = "Выберите машину";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleAdd = () => {
+    if (!validate()) {
+      toast.error("Пожалуйста, заполните все обязательные поля корректно");
+      return;
+    }
+    const formDate = new FormData();
+    formDate.append("cargoNumber", formData.cargoNumber);
+    // Преобразуем строку в дату для отправки в виде ISO-формата
+    formDate.append(
+      "date",
+      parse(formData.date, "dd.MM.yyyy", new Date()).toISOString()
+    );
     formDate.append("transportationInfo", formData.transportationInfo);
     formDate.append("payoutAmount", String(formData.payoutAmount));
     formDate.append("payoutTerms", formData.payoutTerms);
-    formDate.append("truckId", formData.truckId.toString());
+    formDate.append("truckId", formData.truckId);
 
     mutate(
       {
@@ -71,6 +113,9 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
             payoutTerms: "",
             truckId: "",
           });
+          setErrors({});
+
+          onClose();
         },
       }
     );
@@ -92,18 +137,55 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
               onChange={(e) =>
                 setFormData({ ...formData, cargoNumber: e.target.value })
               }
+              className={errors.cargoNumber ? "border-red-500" : ""}
             />
+            {errors.cargoNumber && (
+              <p className="text-red-500 text-sm">{errors.cargoNumber}</p>
+            )}
           </div>
-          <div>
-            <Label htmlFor="date">Дата</Label>
-            <Input
-              id="date"
-              type="date"
-              value={formData.date}
-              onChange={(e) =>
-                setFormData({ ...formData, date: e.target.value })
-              }
-            />
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="data">Дата груза</Label>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-[240px] justify-start text-left font-normal",
+                    !formData.date && "text-muted-foreground"
+                  )}
+                >
+                  {formData.date ? formData.date : <span>Выберите дату</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  locale={{
+                    ...ru,
+                    options: {
+                      ...ru.options,
+                      weekStartsOn: 1,
+                    },
+                  }}
+                  selected={
+                    formData.date
+                      ? parse(formData.date, "dd.MM.yyyy", new Date())
+                      : new Date()
+                  }
+                  onSelect={(day: Date | undefined) => {
+                    if (!day) return;
+                    setFormData({
+                      ...formData,
+                      date: format(day, "dd.MM.yyyy"),
+                    });
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+            {errors.date && (
+              <p className="text-red-500 text-sm">{errors.date}</p>
+            )}
           </div>
           <div>
             <Label htmlFor="transportationInfo">Информация о перевозке</Label>
@@ -111,9 +193,18 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
               id="transportationInfo"
               value={formData.transportationInfo}
               onChange={(e) =>
-                setFormData({ ...formData, transportationInfo: e.target.value })
+                setFormData({
+                  ...formData,
+                  transportationInfo: e.target.value,
+                })
               }
+              className={errors.transportationInfo ? "border-red-500" : ""}
             />
+            {errors.transportationInfo && (
+              <p className="text-red-500 text-sm">
+                {errors.transportationInfo}
+              </p>
+            )}
           </div>
           <div>
             <Label htmlFor="payoutAmount">Сумма выплаты</Label>
@@ -127,7 +218,11 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
                   payoutAmount: Number(e.target.value),
                 })
               }
+              className={errors.payoutAmount ? "border-red-500" : ""}
             />
+            {errors.payoutAmount && (
+              <p className="text-red-500 text-sm">{errors.payoutAmount}</p>
+            )}
           </div>
           <div>
             <Label htmlFor="payoutTerms">Условия выплаты</Label>
@@ -138,7 +233,11 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
               onChange={(e) =>
                 setFormData({ ...formData, payoutTerms: e.target.value })
               }
+              className={errors.payoutTerms ? "border-red-500" : ""}
             />
+            {errors.payoutTerms && (
+              <p className="text-red-500 text-sm">{errors.payoutTerms}</p>
+            )}
           </div>
         </div>
 
@@ -161,6 +260,9 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
               ))}
             </SelectContent>
           </Select>
+          {errors.truckId && (
+            <p className="text-red-500 text-sm">{errors.truckId}</p>
+          )}
         </div>
         <DialogFooter className="mt-4">
           <DialogClose asChild>
