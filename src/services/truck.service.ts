@@ -13,9 +13,14 @@ export interface Cargo {
 }
 
 export interface Truck {
-  id: number;
+  id: string;
   name: string;
-  cargos: Cargo[];
+}
+
+export interface TruckCargos {
+  total: number;
+  page: number;
+  data: Cargo[];
 }
 
 class TruckServices {
@@ -23,6 +28,20 @@ class TruckServices {
 
   async getAll() {
     return await $apiAuth.get<Truck[]>(`${this._Truck}`);
+  }
+
+  async getAllCargosByTruck({
+    id,
+    page,
+    limit,
+  }: {
+    id: string;
+    page: number;
+    limit: number;
+  }) {
+    return await $apiAuth.get<TruckCargos>(`${this._Truck}/${id}/cargos`, {
+      params: { page, limit },
+    });
   }
 }
 
