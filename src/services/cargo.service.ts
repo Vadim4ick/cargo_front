@@ -20,7 +20,7 @@ class CargoServices {
 
   async addCargo({ body }: { body: FormData }) {
     try {
-      await $apiAuth.post<Cargo>(`${this._Cargo}`, body, {
+      return await $apiAuth.post<Cargo>(`${this._Cargo}`, body, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
