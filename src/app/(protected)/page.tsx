@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { useGetAllTrucks } from "@/hooks/useGetAllTrucks";
 import { Button } from "@/components/ui/button";
-import { AddCargoModal } from "@/components/AddCargoModal";
 import { MainTable } from "@/components/MainTable";
+import { CargoModal } from "@/components/CargoModal";
 
 // async function urlToFile(
 //   url: string,
@@ -118,7 +118,7 @@ export default function Home() {
         </div>
       </section>
 
-      <AddCargoModal
+      <CargoModal
         isOpen={addModalOpen}
         trucks={trucks}
         onClose={() => setAddModalOpen(false)}

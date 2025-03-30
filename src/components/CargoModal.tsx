@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Truck } from "@/services/truck.service";
+import { Cargo, Truck } from "@/services/truck.service";
 import {
   Popover,
   PopoverContent,
@@ -25,32 +25,32 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { useAddCargo } from "@/hooks/useAddCargo";
 import { toast } from "sonner";
 import { Calendar } from "@/components/ui/calendar";
-import { AddCargo, cn, validate } from "@/lib/utils";
+import { cn, validate } from "@/lib/utils";
 import { format, parse } from "date-fns";
+import { useAddCargo } from "@/hooks/useAddCargo";
+import { useUpdateCargoById } from "@/hooks/useUpdateCargoById";
 import { useQueryClient } from "@tanstack/react-query";
 
-interface AddCargoModalProps {
+interface CargoModalProps {
   isOpen: boolean;
   onClose: () => void;
   trucks?: Truck[];
-
-  truckId?: string;
-  page?: number;
-  limit?: number;
+  cargo?: Cargo; // Если cargo передан – это режим редактирования
 }
 
-const AddCargoModal: React.FC<AddCargoModalProps> = ({
+const CargoModal: React.FC<CargoModalProps> = ({
   isOpen,
   onClose,
   trucks,
+  cargo,
 }) => {
-  const { mutate, isPending } = useAddCargo();
-  const queryClient = useQueryClient();
+  // Определяем режим
+  const isEditMode = Boolean(cargo);
 
-  const [formData, setFormData] = useState<AddCargo>({
+  // Используем начальное состояние: если редактирование – берем cargo, иначе устанавливаем значения по умолчанию
+  const [formData, setFormData] = useState({
     cargoNumber: "",
     date: "",
     loadUnloadDate: "",
@@ -61,15 +61,53 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
     paymentStatus: "",
     payoutTerms: "",
     truckId: "",
+    ...cargo,
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  const handleAdd = () => {
-    if (!validate(formData, setErrors)) {
+  // Обновляем локальное состояние при изменении cargo (режим редактирования)
+  useEffect(() => {
+    if (cargo) {
+      setFormData({
+        cargoNumber: cargo.cargoNumber,
+        date: cargo.date,
+        loadUnloadDate: cargo.loadUnloadDate,
+        transportationInfo: cargo.transportationInfo,
+        driver: cargo.driver,
+        payoutAmount: cargo.payoutAmount,
+        payoutDate: cargo.payoutDate,
+        paymentStatus: cargo.paymentStatus,
+        payoutTerms: cargo.payoutTerms,
+        truckId: cargo.truckId.toString(),
+      });
+    } else {
+      setFormData({
+        cargoNumber: "",
+        date: "",
+        loadUnloadDate: "",
+        transportationInfo: "",
+        driver: "",
+        payoutAmount: 0,
+        payoutDate: "",
+        paymentStatus: "",
+        payoutTerms: "",
+        truckId: "",
+      });
+    }
+  }, [cargo]);
+
+  const addMutation = useAddCargo();
+  const updateMutation = useUpdateCargoById();
+  const queryClient = useQueryClient();
+
+  const handleSubmit = () => {
+    // Если в режиме добавления, можно добавить дополнительную валидацию
+    if (!isEditMode && !validate(formData, setErrors)) {
       toast.error("Пожалуйста, заполните все обязательные поля корректно");
       return;
     }
+
     const formDate = new FormData();
     formDate.append("cargoNumber", formData.cargoNumber);
     formDate.append("date", formData.date);
@@ -82,41 +120,57 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
     formDate.append("payoutTerms", formData.payoutTerms);
     formDate.append("truckId", formData.truckId);
 
-    mutate(
-      {
-        body: formDate,
-      },
-      {
-        onSuccess: () => {
-          toast.success("Груз успешно добавлен");
-          setFormData({
-            cargoNumber: "",
-            date: "",
-            loadUnloadDate: "",
-            transportationInfo: "",
-            driver: "",
-            payoutAmount: 0,
-            payoutDate: "",
-            paymentStatus: "",
-            payoutTerms: "",
-            truckId: "",
-          });
-          setErrors({});
-          onClose();
-
-          queryClient.invalidateQueries({
-            queryKey: ["cargos"],
-          });
+    if (isEditMode) {
+      updateMutation.mutate(
+        {
+          id: cargo!.id.toString(),
+          body: formDate,
         },
-      }
-    );
+        {
+          onSuccess: () => {
+            toast.success("Груз успешно обновлен");
+            queryClient.invalidateQueries({ queryKey: ["cargos"] });
+            onClose();
+          },
+        }
+      );
+    } else {
+      addMutation.mutate(
+        {
+          body: formDate,
+        },
+        {
+          onSuccess: () => {
+            toast.success("Груз успешно добавлен");
+            // Сброс формы
+            setFormData({
+              cargoNumber: "",
+              date: "",
+              loadUnloadDate: "",
+              transportationInfo: "",
+              driver: "",
+              payoutAmount: 0,
+              payoutDate: "",
+              paymentStatus: "",
+              payoutTerms: "",
+              truckId: "",
+            });
+            setErrors({});
+            onClose();
+            queryClient.invalidateQueries({ queryKey: ["cargos"] });
+          },
+        }
+      );
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Добавить груз</DialogTitle>
+          <DialogTitle>
+            {isEditMode ? "Редактировать груз" : "Добавить груз"}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 mt-4">
           {/* Номер груза */}
@@ -135,10 +189,12 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
               <p className="text-red-500 text-sm">{errors.cargoNumber}</p>
             )}
           </div>
+          {/* Пример для даты (остальные поля аналогично) */}
           <div className="flex items-center gap-4">
-            {/* Дата заявки */}
             <div className="flex flex-col gap-1 w-full">
-              <Label htmlFor="date">Дата заявки</Label>
+              <Label htmlFor="date">
+                {isEditMode ? "Дата груза" : "Дата заявки"}
+              </Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -148,7 +204,7 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
                       !formData.date && "text-muted-foreground"
                     )}
                   >
-                    {formData.date ? formData.date : <span>Выберите дату</span>}
+                    {formData.date || <span>Выберите дату</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -180,10 +236,11 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
                 <p className="text-red-500 text-sm">{errors.date}</p>
               )}
             </div>
-
-            {/* Дата погрузки */}
+            {/* Аналогичный блок для loadUnloadDate */}
             <div className="flex flex-col gap-1 w-full">
-              <Label htmlFor="loadUnloadDate">Дата погрузки</Label>
+              <Label htmlFor="loadUnloadDate">
+                {isEditMode ? "Дата погрузки/разгрузки" : "Дата погрузки"}
+              </Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -193,11 +250,7 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
                       !formData.loadUnloadDate && "text-muted-foreground"
                     )}
                   >
-                    {formData.loadUnloadDate ? (
-                      formData.loadUnloadDate
-                    ) : (
-                      <span>Выберите дату</span>
-                    )}
+                    {formData.loadUnloadDate || <span>Выберите дату</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -234,6 +287,7 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
               )}
             </div>
           </div>
+
           {/* Информация о перевозке */}
           <div>
             <Label htmlFor="transportationInfo">Информация о перевозке</Label>
@@ -246,13 +300,7 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
                   transportationInfo: e.target.value,
                 })
               }
-              className={errors.transportationInfo ? "border-red-500" : ""}
             />
-            {errors.transportationInfo && (
-              <p className="text-red-500 text-sm">
-                {errors.transportationInfo}
-              </p>
-            )}
           </div>
           {/* Водитель */}
           <div>
@@ -264,11 +312,7 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
               onChange={(e) =>
                 setFormData({ ...formData, driver: e.target.value })
               }
-              className={errors.driver ? "border-red-500" : ""}
             />
-            {errors.driver && (
-              <p className="text-red-500 text-sm">{errors.driver}</p>
-            )}
           </div>
           {/* Сумма выплаты */}
           <div>
@@ -283,11 +327,7 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
                   payoutAmount: Number(e.target.value),
                 })
               }
-              className={errors.payoutAmount ? "border-red-500" : ""}
             />
-            {errors.payoutAmount && (
-              <p className="text-red-500 text-sm">{errors.payoutAmount}</p>
-            )}
           </div>
           {/* Дата выплаты */}
           <div className="flex flex-col gap-1">
@@ -320,7 +360,7 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
                   }}
                   selected={
                     formData.payoutDate
-                      ? parse(formData.payoutDate, "dd.MM.yyyy", new Date())
+                      ? new Date(formData.payoutDate)
                       : new Date()
                   }
                   onSelect={(day: Date | undefined) => {
@@ -333,9 +373,6 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
                 />
               </PopoverContent>
             </Popover>
-            {errors.payoutDate && (
-              <p className="text-red-500 text-sm">{errors.payoutDate}</p>
-            )}
           </div>
           {/* Статус оплаты */}
           <div>
@@ -347,11 +384,7 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
               onChange={(e) =>
                 setFormData({ ...formData, paymentStatus: e.target.value })
               }
-              className={errors.paymentStatus ? "border-red-500" : ""}
             />
-            {errors.paymentStatus && (
-              <p className="text-red-500 text-sm">{errors.paymentStatus}</p>
-            )}
           </div>
           {/* Условия выплаты */}
           <div>
@@ -363,45 +396,49 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
               onChange={(e) =>
                 setFormData({ ...formData, payoutTerms: e.target.value })
               }
-              className={errors.payoutTerms ? "border-red-500" : ""}
             />
-            {errors.payoutTerms && (
-              <p className="text-red-500 text-sm">{errors.payoutTerms}</p>
-            )}
           </div>
-          {/* Выбор машины */}
-          <div>
-            <Label htmlFor="truckId">Выберите машину</Label>
-            <Select
-              value={formData.truckId}
-              onValueChange={(value) =>
-                setFormData({ ...formData, truckId: value })
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Выберите машину" />
-              </SelectTrigger>
-              <SelectContent>
-                {trucks?.map((truck) => (
-                  <SelectItem key={truck.id} value={truck.id.toString()}>
-                    {truck.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.truckId && (
-              <p className="text-red-500 text-sm">{errors.truckId}</p>
-            )}
-          </div>
+
+          {trucks && (
+            <div>
+              <Label htmlFor="truckId">Выберите машину</Label>
+              <Select
+                value={formData.truckId}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, truckId: value })
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Выберите машину" />
+                </SelectTrigger>
+                <SelectContent>
+                  {trucks.map((truck) => (
+                    <SelectItem key={truck.id} value={truck.id.toString()}>
+                      {truck.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.truckId && (
+                <p className="text-red-500 text-sm">{errors.truckId}</p>
+              )}
+            </div>
+          )}
         </div>
         <DialogFooter className="mt-4">
           <DialogClose asChild>
-            <Button disabled={isPending} variant="outline">
+            <Button
+              disabled={addMutation.isPending || updateMutation.isPending}
+              variant="outline"
+            >
               Отмена
             </Button>
           </DialogClose>
-          <Button disabled={isPending} onClick={handleAdd}>
-            Добавить
+          <Button
+            disabled={addMutation.isPending || updateMutation.isPending}
+            onClick={handleSubmit}
+          >
+            {isEditMode ? "Сохранить" : "Добавить"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -409,4 +446,4 @@ const AddCargoModal: React.FC<AddCargoModalProps> = ({
   );
 };
 
-export { AddCargoModal };
+export { CargoModal };
