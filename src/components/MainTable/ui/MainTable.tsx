@@ -9,6 +9,7 @@ import { useGetCargosByTruck } from "@/hooks/useGetCargosByTruck";
 import { useEffect, useState } from "react";
 import { Cargo } from "@/services/truck.service";
 import { CargoModal } from "@/components/CargoModal";
+import { CargoDetailsModal } from "@/components/CargoDetailsModal";
 
 const MainTable = ({
   truckId,
@@ -26,15 +27,24 @@ const MainTable = ({
 }) => {
   const [selectedCargo, setSelectedCargo] = useState<Cargo | null>(null);
 
+  const [isOpenDetails, setIsOpenDetails] = useState(false);
+  const [isOpenEdit, setIsOpenEdit] = useState(false);
+
   const handleEdit = (cargo: Cargo) => {
     setSelectedCargo(cargo);
+    setIsOpenEdit(true);
+  };
+  const handleViewDetails = (cargo: Cargo) => {
+    setSelectedCargo(cargo);
+    setIsOpenDetails(true);
   };
 
   const closeModal = () => {
     setSelectedCargo(null);
+    setIsOpenEdit(false);
   };
 
-  const columns = useTableColumns({ handleEdit });
+  const columns = useTableColumns({ handleEdit, handleViewDetails });
 
   useEffect(() => {
     setPagination({ pageIndex: 0, pageSize: 10 });
@@ -162,11 +172,20 @@ const MainTable = ({
 
       {selectedCargo && (
         <CargoModal
-          isOpen={Boolean(selectedCargo)}
+          isOpen={isOpenEdit}
           cargo={selectedCargo}
           onClose={closeModal}
         />
       )}
+
+      <CargoDetailsModal
+        isOpen={isOpenDetails}
+        onClose={() => {
+          setIsOpenDetails(false);
+          setSelectedCargo(null);
+        }}
+        cargo={selectedCargo}
+      />
     </div>
   );
 };

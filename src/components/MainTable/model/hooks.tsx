@@ -6,8 +6,10 @@ import { useMemo } from "react";
 
 export const useTableColumns = ({
   handleEdit,
+  handleViewDetails,
 }: {
   handleEdit: (val: Cargo) => void;
+  handleViewDetails: (val: Cargo) => void;
 }) => {
   // Определяем колонки таблицы
   const columns: ColumnDef<Cargo>[] = useMemo(
@@ -38,14 +40,7 @@ export const useTableColumns = ({
         accessorKey: "payoutAmount",
         cell: (info) => `$${info.getValue()}`,
       },
-      {
-        header: "Дата выплаты",
-        accessorKey: "payoutDate",
-      },
-      {
-        header: "Условия выплаты",
-        accessorKey: "payoutTerms",
-      },
+
       {
         header: "Статус выплаты",
         accessorKey: "paymentStatus",
@@ -66,8 +61,11 @@ export const useTableColumns = ({
         header: "Подробнее",
         id: "details",
         style: { maxWidth: "80px" },
-        cell: () => (
-          <button className="flex justify-center items-center w-full">
+        cell: ({ row }) => (
+          <button
+            onClick={() => handleViewDetails(row.original)}
+            className="flex justify-center items-center w-full"
+          >
             <ViewIcon />
           </button>
         ),
