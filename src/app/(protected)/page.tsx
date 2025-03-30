@@ -17,7 +17,7 @@ import { MainTable } from "@/components/MainTable";
 // }
 
 export default function Home() {
-  const { trucks, isLoading } = useGetAllTrucks();
+  const { trucks } = useGetAllTrucks();
   const [addModalOpen, setAddModalOpen] = useState(false);
   // const [selectedImage, setSelectedImage] = useState<File | null>(null);
 

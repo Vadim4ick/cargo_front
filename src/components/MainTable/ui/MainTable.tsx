@@ -6,7 +6,9 @@ import {
 } from "@tanstack/react-table";
 import { useTableColumns } from "../model/hooks";
 import { useGetCargosByTruck } from "@/hooks/useGetCargosByTruck";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Cargo } from "@/services/truck.service";
+import { EditModalCargo } from "@/components/EditModalСargo";
 
 const MainTable = ({
   truckId,
@@ -22,7 +24,17 @@ const MainTable = ({
     }>
   >;
 }) => {
-  const columns = useTableColumns();
+  const [selectedCargo, setSelectedCargo] = useState<Cargo | null>(null);
+
+  const handleEdit = (cargo: Cargo) => {
+    setSelectedCargo(cargo);
+  };
+
+  const closeModal = () => {
+    setSelectedCargo(null);
+  };
+
+  const columns = useTableColumns({ handleEdit });
 
   useEffect(() => {
     setPagination({ pageIndex: 0, pageSize: 10 });
@@ -41,7 +53,7 @@ const MainTable = ({
     }
   }, [pagination.pageIndex, pagination.pageSize, setPagination]);
 
-  const { data, isLoading, error } = useGetCargosByTruck({
+  const { data, isLoading } = useGetCargosByTruck({
     id: truckId,
     page: pagination.pageIndex,
     limit: pagination.pageSize,
@@ -147,6 +159,10 @@ const MainTable = ({
           </button>
         </div>
       </div>
+
+      {selectedCargo && (
+        <EditModalCargo cargo={selectedCargo} onClose={closeModal} />
+      )}
     </div>
   );
 };
