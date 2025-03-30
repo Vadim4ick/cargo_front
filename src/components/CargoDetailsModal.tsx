@@ -36,14 +36,18 @@ export const CargoDetailsModal: React.FC<CargoDetailsModalProps> = ({
             <span className="font-semibold">Номер груза:</span>
             <span>{cargo.cargoNumber}</span>
           </div>
-          <div className="flex justify-between border-b pb-2">
-            <span className="font-semibold">Дата заявки:</span>
-            <span>{cargo.date}</span>
-          </div>
-          <div className="flex justify-between border-b pb-2">
-            <span className="font-semibold">Дата погрузки/разгрузки:</span>
-            <span>{cargo.loadUnloadDate}</span>
-          </div>
+          {cargo.date && (
+            <div className="flex justify-between border-b pb-2">
+              <span className="font-semibold">Дата заявки:</span>
+              <span>{new Date(cargo.date).toLocaleDateString()}</span>
+            </div>
+          )}
+          {cargo.loadUnloadDate && (
+            <div className="flex justify-between border-b pb-2">
+              <span className="font-semibold">Дата погрузки/разгрузки:</span>
+              <span>{new Date(cargo.loadUnloadDate).toLocaleDateString()}</span>
+            </div>
+          )}
           <div className="flex flex-col border-b pb-2">
             <span className="font-semibold mb-1">Информация о перевозке:</span>
             <span>{cargo.transportationInfo}</span>
@@ -56,10 +60,12 @@ export const CargoDetailsModal: React.FC<CargoDetailsModalProps> = ({
             <span className="font-semibold">Сумма выплаты:</span>
             <span>${cargo.payoutAmount}</span>
           </div>
-          <div className="flex justify-between border-b pb-2">
-            <span className="font-semibold">Дата выплаты:</span>
-            <span>{cargo.payoutDate}</span>
-          </div>
+          {cargo.payoutDate && (
+            <div className="flex justify-between border-b pb-2">
+              <span className="font-semibold">Дата выплаты:</span>
+              <span>{new Date(cargo.payoutDate).toLocaleDateString()}</span>
+            </div>
+          )}
           <div className="flex justify-between border-b pb-2">
             <span className="font-semibold">Статус оплаты:</span>
             <span>{cargo.paymentStatus}</span>

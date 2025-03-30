@@ -27,8 +27,8 @@ import {
 } from "./ui/select";
 import { toast } from "sonner";
 import { Calendar } from "@/components/ui/calendar";
-import { cn, validate } from "@/lib/utils";
-import { format, parse } from "date-fns";
+import { AddCargo, cn, validate } from "@/lib/utils";
+import { format } from "date-fns";
 import { useAddCargo } from "@/hooks/useAddCargo";
 import { useUpdateCargoById } from "@/hooks/useUpdateCargoById";
 import { useQueryClient } from "@tanstack/react-query";
@@ -40,56 +40,61 @@ interface CargoModalProps {
   cargo?: Cargo; // Если cargo передан – это режим редактирования
 }
 
+//
+// Предположим, что в интерфейсе Cargo поля date, loadUnloadDate, payoutDate уже Date
+// (или как минимум Cargo["date"] всегда приходят как объект Date от запроса).
+//
+
 const CargoModal: React.FC<CargoModalProps> = ({
   isOpen,
   onClose,
   trucks,
   cargo,
 }) => {
-  // Определяем режим
+  // Режим редактирования?
   const isEditMode = Boolean(cargo);
 
-  // Используем начальное состояние: если редактирование – берем cargo, иначе устанавливаем значения по умолчанию
-  const [formData, setFormData] = useState({
+  // Начальное состояние для формы
+  const [formData, setFormData] = useState<AddCargo>({
     cargoNumber: "",
-    date: "",
-    loadUnloadDate: "",
+    date: undefined,
+    loadUnloadDate: undefined,
     transportationInfo: "",
     driver: "",
     payoutAmount: 0,
-    payoutDate: "",
+    payoutDate: undefined,
     paymentStatus: "",
     payoutTerms: "",
     truckId: "",
-    ...cargo,
   });
 
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Обновляем локальное состояние при изменении cargo (режим редактирования)
   useEffect(() => {
     if (cargo) {
+      // Если в cargo поля уже Date, просто берём их
       setFormData({
         cargoNumber: cargo.cargoNumber,
-        date: cargo.date,
-        loadUnloadDate: cargo.loadUnloadDate,
+        date: cargo.date ?? undefined,
+        loadUnloadDate: cargo.loadUnloadDate ?? undefined,
         transportationInfo: cargo.transportationInfo,
         driver: cargo.driver,
         payoutAmount: cargo.payoutAmount,
-        payoutDate: cargo.payoutDate,
+        payoutDate: cargo.payoutDate ?? undefined,
         paymentStatus: cargo.paymentStatus,
         payoutTerms: cargo.payoutTerms,
-        truckId: cargo.truckId.toString(),
+        truckId: cargo.truckId, // приводим к строке, если нужно
       });
     } else {
+      // Если нет cargo, сбрасываем все поля в дефолт
       setFormData({
         cargoNumber: "",
-        date: "",
-        loadUnloadDate: "",
+        date: undefined,
+        loadUnloadDate: undefined,
         transportationInfo: "",
         driver: "",
         payoutAmount: 0,
-        payoutDate: "",
+        payoutDate: undefined,
         paymentStatus: "",
         payoutTerms: "",
         truckId: "",
@@ -108,14 +113,28 @@ const CargoModal: React.FC<CargoModalProps> = ({
       return;
     }
 
+    // Подготавливаем данные для отправки.
+    // Вы используете FormData, значит нужно превратить Date -> строка (ISO или ваш формат).
     const formDate = new FormData();
     formDate.append("cargoNumber", formData.cargoNumber);
-    formDate.append("date", formData.date);
-    formDate.append("loadUnloadDate", formData.loadUnloadDate);
+    // Если нужна ISO-строка:
+    formDate.append(
+      "date",
+      formData.date ? new Date(formData.date).toISOString() : ""
+    );
+    formDate.append(
+      "loadUnloadDate",
+      formData.loadUnloadDate
+        ? new Date(formData.loadUnloadDate).toISOString()
+        : ""
+    );
     formDate.append("transportationInfo", formData.transportationInfo);
     formDate.append("driver", formData.driver);
     formDate.append("payoutAmount", String(formData.payoutAmount));
-    formDate.append("payoutDate", formData.payoutDate);
+    formDate.append(
+      "payoutDate",
+      formData.payoutDate ? new Date(formData.payoutDate).toISOString() : ""
+    );
     formDate.append("paymentStatus", formData.paymentStatus);
     formDate.append("payoutTerms", formData.payoutTerms);
     formDate.append("truckId", formData.truckId);
@@ -123,7 +142,7 @@ const CargoModal: React.FC<CargoModalProps> = ({
     if (isEditMode) {
       updateMutation.mutate(
         {
-          id: cargo!.id.toString(),
+          id: String(cargo!.id),
           body: formDate,
         },
         {
@@ -136,21 +155,19 @@ const CargoModal: React.FC<CargoModalProps> = ({
       );
     } else {
       addMutation.mutate(
-        {
-          body: formDate,
-        },
+        { body: formDate },
         {
           onSuccess: () => {
             toast.success("Груз успешно добавлен");
             // Сброс формы
             setFormData({
               cargoNumber: "",
-              date: "",
-              loadUnloadDate: "",
+              date: undefined,
+              loadUnloadDate: undefined,
               transportationInfo: "",
               driver: "",
               payoutAmount: 0,
-              payoutDate: "",
+              payoutDate: undefined,
               paymentStatus: "",
               payoutTerms: "",
               truckId: "",
@@ -189,7 +206,8 @@ const CargoModal: React.FC<CargoModalProps> = ({
               <p className="text-red-500 text-sm">{errors.cargoNumber}</p>
             )}
           </div>
-          {/* Пример для даты (остальные поля аналогично) */}
+
+          {/* Дата заявки */}
           <div className="flex items-center gap-4">
             <div className="flex flex-col gap-1 w-full">
               <Label htmlFor="date">
@@ -204,7 +222,9 @@ const CargoModal: React.FC<CargoModalProps> = ({
                       !formData.date && "text-muted-foreground"
                     )}
                   >
-                    {formData.date || <span>Выберите дату</span>}
+                    {formData.date
+                      ? format(formData.date, "dd.MM.yyyy")
+                      : "Выберите дату"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -217,17 +237,10 @@ const CargoModal: React.FC<CargoModalProps> = ({
                         weekStartsOn: 1,
                       },
                     }}
-                    selected={
-                      formData.date
-                        ? parse(formData.date, "dd.MM.yyyy", new Date())
-                        : new Date()
-                    }
+                    selected={new Date(formData.date!) ?? new Date()}
                     onSelect={(day: Date | undefined) => {
                       if (!day) return;
-                      setFormData({
-                        ...formData,
-                        date: format(day, "dd.MM.yyyy"),
-                      });
+                      setFormData({ ...formData, date: day });
                     }}
                   />
                 </PopoverContent>
@@ -236,7 +249,8 @@ const CargoModal: React.FC<CargoModalProps> = ({
                 <p className="text-red-500 text-sm">{errors.date}</p>
               )}
             </div>
-            {/* Аналогичный блок для loadUnloadDate */}
+
+            {/* Дата погрузки/разгрузки */}
             <div className="flex flex-col gap-1 w-full">
               <Label htmlFor="loadUnloadDate">
                 {isEditMode ? "Дата погрузки/разгрузки" : "Дата погрузки"}
@@ -250,7 +264,9 @@ const CargoModal: React.FC<CargoModalProps> = ({
                       !formData.loadUnloadDate && "text-muted-foreground"
                     )}
                   >
-                    {formData.loadUnloadDate || <span>Выберите дату</span>}
+                    {formData.loadUnloadDate
+                      ? format(formData.loadUnloadDate, "dd.MM.yyyy")
+                      : "Выберите дату"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -263,21 +279,10 @@ const CargoModal: React.FC<CargoModalProps> = ({
                         weekStartsOn: 1,
                       },
                     }}
-                    selected={
-                      formData.loadUnloadDate
-                        ? parse(
-                            formData.loadUnloadDate,
-                            "dd.MM.yyyy",
-                            new Date()
-                          )
-                        : new Date()
-                    }
+                    selected={new Date(formData.loadUnloadDate!) ?? new Date()}
                     onSelect={(day: Date | undefined) => {
                       if (!day) return;
-                      setFormData({
-                        ...formData,
-                        loadUnloadDate: format(day, "dd.MM.yyyy"),
-                      });
+                      setFormData({ ...formData, loadUnloadDate: day });
                     }}
                   />
                 </PopoverContent>
@@ -302,6 +307,7 @@ const CargoModal: React.FC<CargoModalProps> = ({
               }
             />
           </div>
+
           {/* Водитель */}
           <div>
             <Label htmlFor="driver">Водитель</Label>
@@ -314,6 +320,7 @@ const CargoModal: React.FC<CargoModalProps> = ({
               }
             />
           </div>
+
           {/* Сумма выплаты */}
           <div>
             <Label htmlFor="payoutAmount">Сумма выплаты</Label>
@@ -329,6 +336,7 @@ const CargoModal: React.FC<CargoModalProps> = ({
               }
             />
           </div>
+
           {/* Дата выплаты */}
           <div className="flex flex-col gap-1">
             <Label htmlFor="payoutDate">Дата выплаты</Label>
@@ -341,11 +349,9 @@ const CargoModal: React.FC<CargoModalProps> = ({
                     !formData.payoutDate && "text-muted-foreground"
                   )}
                 >
-                  {formData.payoutDate ? (
-                    formData.payoutDate
-                  ) : (
-                    <span>Выберите дату</span>
-                  )}
+                  {formData.payoutDate
+                    ? format(formData.payoutDate, "dd.MM.yyyy")
+                    : "Выберите дату"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -358,22 +364,16 @@ const CargoModal: React.FC<CargoModalProps> = ({
                       weekStartsOn: 1,
                     },
                   }}
-                  selected={
-                    formData.payoutDate
-                      ? new Date(formData.payoutDate)
-                      : new Date()
-                  }
+                  selected={formData.payoutDate ?? new Date()}
                   onSelect={(day: Date | undefined) => {
                     if (!day) return;
-                    setFormData({
-                      ...formData,
-                      payoutDate: format(day, "dd.MM.yyyy"),
-                    });
+                    setFormData({ ...formData, payoutDate: day });
                   }}
                 />
               </PopoverContent>
             </Popover>
           </div>
+
           {/* Статус оплаты */}
           <div>
             <Label htmlFor="paymentStatus">Статус оплаты</Label>
@@ -386,6 +386,7 @@ const CargoModal: React.FC<CargoModalProps> = ({
               }
             />
           </div>
+
           {/* Условия выплаты */}
           <div>
             <Label htmlFor="payoutTerms">Условия выплаты</Label>
@@ -413,7 +414,7 @@ const CargoModal: React.FC<CargoModalProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   {trucks.map((truck) => (
-                    <SelectItem key={truck.id} value={truck.id.toString()}>
+                    <SelectItem key={truck.id} value={String(truck.id)}>
                       {truck.name}
                     </SelectItem>
                   ))}
