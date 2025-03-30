@@ -8,7 +8,7 @@ import { useTableColumns } from "../model/hooks";
 import { useGetCargosByTruck } from "@/hooks/useGetCargosByTruck";
 import { useEffect, useState } from "react";
 import { Cargo } from "@/services/truck.service";
-import { EditModalCargo } from "@/components/EditModalСargo";
+import { CargoModal } from "@/components/CargoModal";
 
 const MainTable = ({
   truckId,
@@ -161,7 +161,11 @@ const MainTable = ({
       </div>
 
       {selectedCargo && (
-        <EditModalCargo cargo={selectedCargo} onClose={closeModal} />
+        <CargoModal
+          isOpen={Boolean(selectedCargo)}
+          cargo={selectedCargo}
+          onClose={closeModal}
+        />
       )}
     </div>
   );
