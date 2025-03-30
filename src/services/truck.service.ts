@@ -2,13 +2,13 @@ import { $apiAuth } from "@/api/api";
 
 export interface Cargo {
   id: number;
-  date: string;
+  date?: Date;
   cargoNumber: string;
-  loadUnloadDate: string;
+  loadUnloadDate?: Date;
   transportationInfo: string;
   driver: string;
   payoutAmount: number;
-  payoutDate: string;
+  payoutDate?: Date;
   createdAt: string;
   paymentStatus: string;
   payoutTerms: string;

@@ -21,7 +21,11 @@ export const useTableColumns = ({
       {
         header: "Дата заявки",
         accessorKey: "date",
-        cell: ({ getValue }) => getValue(),
+        cell: ({ getValue }) => {
+          const rawValue = getValue() as Date;
+
+          return new Date(rawValue).toLocaleDateString("ru-RU");
+        },
       },
       // {
       //   header: "Информация о перевозке",
@@ -30,6 +34,11 @@ export const useTableColumns = ({
       {
         header: "Дата загрузки",
         accessorKey: "loadUnloadDate",
+        cell: ({ getValue }) => {
+          const rawValue = getValue() as Date;
+
+          return new Date(rawValue).toLocaleDateString("ru-RU");
+        },
       },
       {
         header: "Водитель",
@@ -38,7 +47,7 @@ export const useTableColumns = ({
       {
         header: "Сумма выплаты",
         accessorKey: "payoutAmount",
-        cell: (info) => `$${info.getValue()}`,
+        cell: (info) => `${info.getValue()} Р`,
       },
 
       {
