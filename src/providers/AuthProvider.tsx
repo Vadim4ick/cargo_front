@@ -8,8 +8,8 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   if (isLoadingProfile) {
     return (
-      <div className="bg-gray-100 flex flex-col h-full p-6">
-        <Loader className="absolute left-1/2 top-1/2 size-10" />
+      <div className="bg-gray-100 flex flex-col items-center justify-center p-6 fixed size-10 z-[5000] w-full h-full">
+        <Loader />
       </div>
     );
   }

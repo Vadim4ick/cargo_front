@@ -29,19 +29,19 @@ export default function RootLayout({
 }>) {
   return (
     <html className="h-full" lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-gray-100`}
-      >
-        <Providers>
+      <Providers>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gray-100`}
+        >
           <Navbar />
 
           <main className="flex-1 h-full">{children}</main>
 
           <Footer />
-        </Providers>
 
-        <Toaster richColors />
-      </body>
+          <Toaster richColors />
+        </body>
+      </Providers>
     </html>
   );
 }
