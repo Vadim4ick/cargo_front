@@ -1,10 +1,14 @@
+import { Button } from "@/components/ui/button";
 import { Cargo } from "@/services/truck.service";
 import { ColumnDef } from "@tanstack/react-table";
 import { ViewIcon } from "lucide-react";
 import { useMemo } from "react";
-import { EditModalСargo } from "../../EditModalСargo";
 
-export const useTableColumns = () => {
+export const useTableColumns = ({
+  handleEdit,
+}: {
+  handleEdit: (val: Cargo) => void;
+}) => {
   // Определяем колонки таблицы
   const columns: ColumnDef<Cargo>[] = useMemo(
     () => [
@@ -13,14 +17,21 @@ export const useTableColumns = () => {
         accessorKey: "cargoNumber",
       },
       {
-        header: "Дата",
+        header: "Дата заявки",
         accessorKey: "date",
-        cell: ({ getValue }) =>
-          new Date(getValue() as string).toLocaleDateString(),
+        cell: ({ getValue }) => getValue(),
+      },
+      // {
+      //   header: "Информация о перевозке",
+      //   accessorKey: "transportationInfo",
+      // },
+      {
+        header: "Дата загрузки",
+        accessorKey: "loadUnloadDate",
       },
       {
-        header: "Информация о перевозке",
-        accessorKey: "transportationInfo",
+        header: "Водитель",
+        accessorKey: "driver",
       },
       {
         header: "Сумма выплаты",
@@ -28,15 +39,27 @@ export const useTableColumns = () => {
         cell: (info) => `$${info.getValue()}`,
       },
       {
+        header: "Дата выплаты",
+        accessorKey: "payoutDate",
+      },
+      {
         header: "Условия выплаты",
         accessorKey: "payoutTerms",
+      },
+      {
+        header: "Статус выплаты",
+        accessorKey: "paymentStatus",
       },
       {
         header: "Редактировать",
         id: "edit",
         style: { maxWidth: "80px" },
         cell: ({ row }) => {
-          return <EditModalСargo cargo={row.original} />;
+          return (
+            <Button onClick={() => handleEdit(row.original)} variant="outline">
+              Редактировать
+            </Button>
+          );
         },
       },
       {
