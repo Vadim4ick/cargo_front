@@ -79,16 +79,16 @@ class AuthServices {
     //   expires: 300 / 86400,
     //   secure: true,
     // });
-    // Cookies.set(EnumTokens.ACCESS_TOKEN, accessToken, {
-    //   sameSite: "Strict",
-    //   expires: 300 / 86400,
-    //   secure: true,
-    // });
-
     Cookies.set(EnumTokens.ACCESS_TOKEN, accessToken, {
-      secure: true,
+      sameSite: "Lax",
       expires: 300 / 86400,
+      secure: true,
     });
+
+    // Cookies.set(EnumTokens.ACCESS_TOKEN, accessToken, {
+    //   secure: true,
+    //   expires: 300 / 86400,
+    // });
   }
 
   removeFromStorage() {
