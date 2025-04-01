@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useRef } from "react";
 import { Trash, UploadCloud } from "lucide-react";
 import Image from "next/image";
