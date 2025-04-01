@@ -28,18 +28,7 @@ export const validate = (
   if (!formData.driver.trim()) {
     newErrors.driver = "Имя водителя обязательно";
   }
-  if (formData.payoutAmount <= 0) {
-    newErrors.payoutAmount = "Сумма выплаты должна быть больше 0";
-  }
-  if (!formData.payoutDate) {
-    newErrors.payoutDate = "Дата выплаты обязательна";
-  }
-  if (!formData.paymentStatus.trim()) {
-    newErrors.paymentStatus = "Статус оплаты обязателен";
-  }
-  if (!formData.payoutTerms.trim()) {
-    newErrors.payoutTerms = "Условия выплаты обязательны";
-  }
+
   if (!formData.truckId) {
     newErrors.truckId = "Выберите машину";
   }

@@ -130,13 +130,17 @@ const CargoModal: React.FC<CargoModalProps> = ({
     );
     formDate.append("transportationInfo", formData.transportationInfo);
     formDate.append("driver", formData.driver);
-    formDate.append("payoutAmount", String(formData.payoutAmount));
-    formDate.append(
-      "payoutDate",
-      formData.payoutDate ? new Date(formData.payoutDate).toISOString() : ""
-    );
-    formDate.append("paymentStatus", formData.paymentStatus);
-    formDate.append("payoutTerms", formData.payoutTerms);
+    if (formData.payoutAmount)
+      formDate.append("payoutAmount", String(formData.payoutAmount));
+    if (formData.payoutDate)
+      formDate.append(
+        "payoutDate",
+        formData.payoutDate ? new Date(formData.payoutDate).toISOString() : ""
+      );
+    if (formData.paymentStatus)
+      formDate.append("paymentStatus", formData.paymentStatus);
+    if (formData.payoutTerms)
+      formDate.append("payoutTerms", formData.payoutTerms);
     formDate.append("truckId", formData.truckId);
 
     if (isEditMode) {

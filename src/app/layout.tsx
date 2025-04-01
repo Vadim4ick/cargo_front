@@ -29,10 +29,10 @@ export default function RootLayout({
 }>) {
   return (
     <html className="h-full" lang="en">
-      <Providers>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen bg-gray-100`}
-        >
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen bg-gray-100`}
+      >
+        <Providers>
           <Navbar />
 
           <main className="flex-1">{children}</main>
@@ -40,8 +40,8 @@ export default function RootLayout({
           <Footer />
 
           <Toaster richColors />
-        </body>
-      </Providers>
+        </Providers>
+      </body>
     </html>
   );
 }
