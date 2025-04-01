@@ -73,11 +73,21 @@ class AuthServices {
   }
 
   private _saveTokenStorage(accessToken: string) {
+    // Cookies.set(EnumTokens.ACCESS_TOKEN, accessToken, {
+    //   domain: "localhost",
+    //   sameSite: "Strict",
+    //   expires: 300 / 86400,
+    //   secure: true,
+    // });
+    // Cookies.set(EnumTokens.ACCESS_TOKEN, accessToken, {
+    //   sameSite: "Strict",
+    //   expires: 300 / 86400,
+    //   secure: true,
+    // });
+
     Cookies.set(EnumTokens.ACCESS_TOKEN, accessToken, {
-      domain: "localhost",
-      sameSite: "Strict",
-      expires: 300 / 86400,
       secure: true,
+      expires: 300 / 86400,
     });
   }
 
