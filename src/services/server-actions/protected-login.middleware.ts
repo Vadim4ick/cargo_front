@@ -7,6 +7,8 @@ import { getTokensFromRequest } from "./get-tokens-from-req";
 const protectedLogin = async (req: NextRequest) => {
   const tokens = await getTokensFromRequest(req);
 
+  console.log("tokens", tokens);
+
   if (!tokens) return NextResponse.next();
 
   if (tokens?.accessToken) {
