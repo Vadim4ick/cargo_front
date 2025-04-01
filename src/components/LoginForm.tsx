@@ -14,11 +14,11 @@ export const LoginForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const data = await authServices.login({ email, password });
+    await authServices.login({ email, password });
 
-    if (data?.data?.access_token) {
-      router.push("/");
-    }
+    // if (data?.data?.access_token) {
+    router.push("/");
+    // }
   };
 
   return (
