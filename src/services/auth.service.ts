@@ -82,7 +82,7 @@ class AuthServices {
     Cookies.set(EnumTokens.ACCESS_TOKEN, accessToken, {
       sameSite: "Lax",
       expires: 300 / 86400,
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
     });
 
     // Cookies.set(EnumTokens.ACCESS_TOKEN, accessToken, {
