@@ -9,7 +9,9 @@ const useLogin = () => {
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       authServices.login({ email, password }),
     onSuccess: () => {
-      router.push("/");
+      setTimeout(() => {
+        router.push("/");
+      }, 100);
     },
   });
 

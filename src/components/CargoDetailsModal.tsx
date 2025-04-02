@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Cargo } from "@/services/truck.service";
+import { useCargoById } from "@/hooks/useDeleteCargo";
 
 interface CargoDetailsModalProps {
   isOpen: boolean;
@@ -21,6 +22,8 @@ export const CargoDetailsModal: React.FC<CargoDetailsModalProps> = ({
   onClose,
   cargo,
 }) => {
+  const { mutate, isPending } = useCargoById();
+
   if (!cargo) return null;
 
   return (
@@ -82,7 +85,28 @@ export const CargoDetailsModal: React.FC<CargoDetailsModalProps> = ({
           )}
         </div>
         <DialogFooter className="mt-6">
-          <DialogClose asChild>
+          <DialogClose
+            onClick={() =>
+              mutate(
+                {
+                  id: cargo.id,
+                },
+                {
+                  onSuccess: () => {
+                    onClose();
+                  },
+                }
+              )
+            }
+            disabled={isPending}
+            asChild
+          >
+            <Button variant="destructive" onClick={onClose}>
+              Удалить
+            </Button>
+          </DialogClose>
+
+          <DialogClose disabled={isPending} asChild>
             <Button variant="outline" onClick={onClose}>
               Закрыть
             </Button>
