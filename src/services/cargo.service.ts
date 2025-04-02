@@ -34,6 +34,15 @@ class CargoServices {
   async getById({ id }: { id: string }) {
     return await $apiAuth.get<Cargo>(`${this._Cargo}/${id}`);
   }
+
+  async deleteById({ id }: { id: number }) {
+    try {
+      return await $apiAuth.delete<{ message: string }>(`${this._Cargo}/${id}`);
+    } catch (err) {
+      toast.error("Произошла непредвиденная при удалении груза");
+      throw err;
+    }
+  }
 }
 
 export const cargoServices = new CargoServices();
