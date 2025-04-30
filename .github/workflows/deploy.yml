@@ -30,7 +30,7 @@ jobs:
       - name: Упаковать билд
         run: |
           mkdir -p deploy
-          cp -r .next public package.json .env.production next.config.js deploy/
+          cp -r .next package.json .env.production next.config.mjs deploy/
           tar -czf deploy.tar.gz -C deploy .
           ls -lh deploy.tar.gz
 
@@ -48,7 +48,7 @@ jobs:
           set -e
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-          cd /root/compositions/nginx/nko
+          cd /opt/cargo_front
           find . -maxdepth 1 ! -name 'node_modules' ! -name '.' -exec rm -rf {} +
           tar -xzf /tmp/deploy.tar.gz -C .
           npm ci --omit=dev --ignore-scripts
