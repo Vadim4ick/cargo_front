@@ -68,7 +68,6 @@ const MainTable = ({
     page: pagination.pageIndex,
     limit: pagination.pageSize,
   });
-
   const table = useReactTable({
     data: data?.data.data ?? [],
     columns,
