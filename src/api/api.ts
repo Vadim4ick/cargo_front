@@ -13,7 +13,6 @@ const options: CreateAxiosDefaults = {
 };
 
 export const $api = axios.create(options);
-
 export const $apiAuth = axios.create(options);
 
 $apiAuth.interceptors.request.use((config) => {
