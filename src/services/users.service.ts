@@ -14,7 +14,7 @@ class UsersServices {
   private _Users = "/users";
 
   async getAll() {
-    const data = await $apiAuth.get<User[]>(`${this._Users}`);
+    const data = await $apiAuth.get<{ data: User[] }>(`${this._Users}`);
 
     return data;
   }

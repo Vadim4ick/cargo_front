@@ -114,8 +114,8 @@ const UsersPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {users?.data &&
-                  users.data.map((user) => (
+                {users?.data.data &&
+                  users.data.data.map((user) => (
                     <tr key={user.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 border-b">{user.username}</td>
                       <td className="px-6 py-4 border-b">{user.email}</td>
@@ -144,7 +144,7 @@ const UsersPage = () => {
                       </td>
                     </tr>
                   ))}
-                {users?.data.length === 0 && (
+                {users?.data.data.length === 0 && (
                   <tr>
                     <td className="px-6 py-4 border-b text-center" colSpan={5}>
                       Нет пользователей

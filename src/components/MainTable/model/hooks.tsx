@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Cargo } from "@/services/truck.service";
+import { useProfile } from "@/store/profile";
 import { ColumnDef } from "@tanstack/react-table";
 import { ViewIcon } from "lucide-react";
 import { useMemo } from "react";
@@ -11,9 +12,11 @@ export const useTableColumns = ({
   handleEdit: (val: Cargo) => void;
   handleViewDetails: (val: Cargo) => void;
 }) => {
+  const { user: profile } = useProfile();
+
   // Определяем колонки таблицы
-  const columns: ColumnDef<Cargo>[] = useMemo(
-    () => [
+  const columns: ColumnDef<Cargo>[] = useMemo(() => {
+    const cols: ColumnDef<Cargo>[] = [
       {
         header: "Номер груза",
         accessorKey: "cargoNumber",
@@ -27,10 +30,7 @@ export const useTableColumns = ({
           return new Date(rawValue).toLocaleDateString("ru-RU");
         },
       },
-      // {
-      //   header: "Информация о перевозке",
-      //   accessorKey: "transportationInfo",
-      // },
+
       {
         header: "Дата загрузки",
         accessorKey: "loadUnloadDate",
@@ -54,24 +54,14 @@ export const useTableColumns = ({
         header: "Статус выплаты",
         accessorKey: "paymentStatus",
       },
-      {
-        header: "Редактировать",
-        id: "edit",
-        style: { maxWidth: "80px" },
-        cell: ({ row }) => {
-          return (
-            <Button onClick={() => handleEdit(row.original)} variant="outline">
-              Редактировать
-            </Button>
-          );
-        },
-      },
+
       {
         header: "Подробнее",
         id: "details",
-        style: { maxWidth: "80px" },
+
         cell: ({ row }) => (
           <button
+            style={{ maxWidth: "80px" }}
             onClick={() => handleViewDetails(row.original)}
             className="flex justify-center items-center w-full"
           >
@@ -79,9 +69,27 @@ export const useTableColumns = ({
           </button>
         ),
       },
-    ],
-    []
-  );
+    ];
+
+    if (profile?.role !== "USER") {
+      cols.splice(cols.length - 1, 0, {
+        header: "Редактировать",
+        id: "edit",
+
+        cell: ({ row }) => (
+          <Button
+            style={{ maxWidth: "180px" }}
+            onClick={() => handleEdit(row.original)}
+            variant="outline"
+          >
+            Редактировать
+          </Button>
+        ),
+      });
+    }
+
+    return cols;
+  }, [handleEdit, handleViewDetails, profile?.role]);
 
   return columns;
 };

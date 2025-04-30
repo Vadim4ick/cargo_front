@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Cargo } from "@/services/truck.service";
 import { useCargoById } from "@/hooks/useDeleteCargo";
+import { useProfile } from "@/store/profile";
 
 interface CargoDetailsModalProps {
   isOpen: boolean;
@@ -23,6 +24,8 @@ export const CargoDetailsModal: React.FC<CargoDetailsModalProps> = ({
   cargo,
 }) => {
   const { mutate, isPending } = useCargoById();
+
+  const { user: profile } = useProfile();
 
   if (!cargo) return null;
 
@@ -85,26 +88,28 @@ export const CargoDetailsModal: React.FC<CargoDetailsModalProps> = ({
           )}
         </div>
         <DialogFooter className="mt-6">
-          <DialogClose
-            onClick={() =>
-              mutate(
-                {
-                  id: cargo.id,
-                },
-                {
-                  onSuccess: () => {
-                    onClose();
+          {profile?.role !== "USER" && (
+            <DialogClose
+              onClick={() =>
+                mutate(
+                  {
+                    id: cargo.id,
                   },
-                }
-              )
-            }
-            disabled={isPending}
-            asChild
-          >
-            <Button variant="destructive" onClick={onClose}>
-              Удалить
-            </Button>
-          </DialogClose>
+                  {
+                    onSuccess: () => {
+                      onClose();
+                    },
+                  }
+                )
+              }
+              disabled={isPending}
+              asChild
+            >
+              <Button variant="destructive" onClick={onClose}>
+                Удалить
+              </Button>
+            </DialogClose>
+          )}
 
           <DialogClose disabled={isPending} asChild>
             <Button variant="outline" onClick={onClose}>

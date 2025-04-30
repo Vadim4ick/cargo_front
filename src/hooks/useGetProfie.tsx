@@ -13,7 +13,7 @@ const useGetProfile = () => {
 
   useEffect(() => {
     if (isSuccess && data) {
-      setUser(data);
+      setUser(data.data);
     }
   }, [isSuccess, data, setUser]);
 

@@ -31,7 +31,7 @@ class TruckServices {
   private _Truck = "/truck";
 
   async getAll() {
-    return await $apiAuth.get<Truck[]>(`${this._Truck}`);
+    return await $apiAuth.get<{ data: Truck[] }>(`${this._Truck}`);
   }
 
   async getAllCargosByTruck({
@@ -43,9 +43,12 @@ class TruckServices {
     page: number;
     limit: number;
   }) {
-    return await $apiAuth.get<TruckCargos>(`${this._Truck}/${id}/cargos`, {
-      params: { page, limit },
-    });
+    return await $apiAuth.get<{ data: TruckCargos }>(
+      `${this._Truck}/${id}/cargos`,
+      {
+        params: { page, limit },
+      }
+    );
   }
 }
 

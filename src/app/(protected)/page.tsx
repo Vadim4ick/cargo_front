@@ -5,41 +5,13 @@ import { useGetAllTrucks } from "@/hooks/useGetAllTrucks";
 import { Button } from "@/components/ui/button";
 import { MainTable } from "@/components/MainTable";
 import { CargoModal } from "@/components/CargoModal";
-
-// async function urlToFile(
-//   url: string,
-//   fileName: string,
-//   mimeType: string
-// ): Promise<File> {
-//   const response = await fetch(url);
-//   const blob = await response.blob();
-//   return new File([blob], fileName, { type: mimeType });
-// }
+import { useProfile } from "@/store/profile";
 
 export default function Home() {
   const { trucks } = useGetAllTrucks();
   const [addModalOpen, setAddModalOpen] = useState(false);
-  // const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
-  // console.log(selectedImage);
-
-  // const { data: cargo, isLoading: cargoLoading } = useGetCargoById({
-  //   id: "564085b6-71eb-47fa-86d7-07aa5a87f3ae",
-  // });
-  // const { mutate } = useUpdateCargoById();
-
-  // console.log(cargo);
-
-  // const onClick = () => {
-  //   if (!selectedImage) return;
-
-  //   mutate({
-  //     id: "564085b6-71eb-47fa-86d7-07aa5a87f3ae",
-  //     body: {
-  //       cargoPhoto: selectedImage,
-  //     },
-  //   });
-  // };
+  const { user: profile } = useProfile();
 
   // Состояние для выбранного таба (грузовика)
   const [activeTruckIndex, setActiveTruckIndex] = useState<number>(0);
@@ -77,20 +49,22 @@ export default function Home() {
             <button onClick={onClick}>Загрузить</button>
           </div> */}
 
-          <div className="flex items-end justify-end">
-            <Button
-              onClick={() => setAddModalOpen(true)}
-              className="w-full mb-4 max-w-[200px]"
-            >
-              Добавить груз
-            </Button>
-          </div>
+          {profile?.role !== "USER" && (
+            <div className="flex items-end justify-end">
+              <Button
+                onClick={() => setAddModalOpen(true)}
+                className="w-full mb-4 max-w-[200px]"
+              >
+                Добавить груз
+              </Button>
+            </div>
+          )}
 
           <div className="bg-gray-50 p-6 rounded-lg shadow-md flex flex-col justify-between">
             {/* Навигация табов */}
             <div className="mb-4 border-b border-gray-200">
               <nav className="flex space-x-4 overflow-auto">
-                {trucks?.map((truck, index) => (
+                {trucks?.data.map((truck, index) => (
                   <button
                     key={truck.id}
                     onClick={() => setActiveTruckIndex(index)}
@@ -107,9 +81,9 @@ export default function Home() {
             </div>
 
             {/* Таблица */}
-            {trucks?.[activeTruckIndex]?.id && (
+            {trucks?.data?.[activeTruckIndex]?.id && (
               <MainTable
-                truckId={trucks?.[activeTruckIndex]?.id}
+                truckId={trucks?.data?.[activeTruckIndex]?.id}
                 pagination={pagination}
                 setPagination={setPagination}
               />
@@ -120,7 +94,7 @@ export default function Home() {
 
       <CargoModal
         isOpen={addModalOpen}
-        trucks={trucks}
+        trucks={trucks?.data}
         onClose={() => setAddModalOpen(false)}
       />
     </div>

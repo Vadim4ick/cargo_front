@@ -9,7 +9,7 @@ class AuthServices {
   private _Auth = "/auth";
 
   async getMe() {
-    const { data } = await $apiAuth.get<User>(`/profile`);
+    const { data } = await $apiAuth.get<{ data: User }>(`/profile`);
 
     return data;
   }
@@ -73,22 +73,11 @@ class AuthServices {
   }
 
   private _saveTokenStorage(accessToken: string) {
-    // Cookies.set(EnumTokens.ACCESS_TOKEN, accessToken, {
-    //   domain: "localhost",
-    //   sameSite: "Strict",
-    //   expires: 300 / 86400,
-    //   secure: true,
-    // });
     Cookies.set(EnumTokens.ACCESS_TOKEN, accessToken, {
       sameSite: "Lax",
       expires: 300 / 86400,
       secure: process.env.NODE_ENV === "production",
     });
-
-    // Cookies.set(EnumTokens.ACCESS_TOKEN, accessToken, {
-    //   secure: true,
-    //   expires: 300 / 86400,
-    // });
   }
 
   removeFromStorage() {
@@ -103,7 +92,7 @@ class AuthServices {
   async refresh(refreshToken?: string) {
     try {
       const { data } = await $api.post<{
-        access_token: string;
+        data: { access_token: string };
       }>(
         `${this._Auth}/refresh`,
         {},
@@ -114,8 +103,8 @@ class AuthServices {
         }
       );
 
-      if (data?.access_token) {
-        this._saveTokenStorage(data.access_token);
+      if (data?.data?.access_token) {
+        this._saveTokenStorage(data.data.access_token);
       }
 
       return data;

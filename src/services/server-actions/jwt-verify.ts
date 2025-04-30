@@ -1,7 +1,5 @@
 "use server";
 
-import { jwtVerify } from "jose";
-
 export interface ITokensInside {
   id: string;
   iat: number;
@@ -10,12 +8,25 @@ export interface ITokensInside {
 
 const jwtVerifyServer = async (accessToken: string) => {
   try {
-    const { payload }: { payload: ITokensInside } = await jwtVerify(
-      accessToken,
-      new TextEncoder().encode(process.env.JWT_SECRET)
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SERVER_URL}/validate-token`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        cache: "no-cache",
+      }
     );
 
-    return payload;
+    const responseData = await res.json();
+    // console.log("Ответ проверки токена:", responseData);
+
+    if (responseData.message === "Token is valid") {
+      return { valid: true };
+    } else {
+      return { valid: false, message: responseData.message };
+    }
   } catch (error) {
     if (
       error instanceof Error &&
