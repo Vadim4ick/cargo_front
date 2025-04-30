@@ -43,12 +43,9 @@ class TruckServices {
     page: number;
     limit: number;
   }) {
-    return await $apiAuth.get<{ data: TruckCargos }>(
-      `${this._Truck}/${id}/cargos`,
-      {
-        params: { page, limit },
-      }
-    );
+    return await $apiAuth.get<TruckCargos>(`${this._Truck}/${id}/cargos`, {
+      params: { page, limit },
+    });
   }
 }
 

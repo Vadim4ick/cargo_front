@@ -52,7 +52,7 @@ const MainTable = ({
 
   useEffect(() => {
     const currentPageCount = Math.ceil(
-      (data?.data.data.total ?? 0) / pagination.pageSize
+      (data?.data.total ?? 0) / pagination.pageSize
     );
 
     if (pagination.pageIndex >= currentPageCount && currentPageCount > 0) {
@@ -70,9 +70,9 @@ const MainTable = ({
   });
 
   const table = useReactTable({
-    data: data?.data.data.data ?? [],
+    data: data?.data.data ?? [],
     columns,
-    pageCount: Math.ceil((data?.data.data.total ?? 0) / pagination.pageSize),
+    pageCount: Math.ceil((data?.data.total ?? 0) / pagination.pageSize),
     state: {
       pagination,
     },
