@@ -52,5 +52,5 @@ jobs:
           find . -maxdepth 1 ! -name 'node_modules' ! -name '.' -exec rm -rf {} +
           tar -xzf /tmp/deploy.tar.gz -C .
           npm ci --omit=dev --ignore-scripts
-          pm2 restart front || pm2 start npm --name front -- start
+          pm2 restart frontend || pm2 start npm --name frontend -- start
           EOF
