@@ -30,7 +30,7 @@ jobs:
       - name: Упаковать билд
         run: |
           mkdir -p deploy
-          cp -r .next public package.json .env.production next.config.mjs deploy/
+          cp -r .next package.json package-lock.json .env.production next.config.mjs deploy/
           tar -czf deploy.tar.gz -C deploy .
           ls -lh deploy.tar.gz
 
@@ -46,8 +46,11 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
           set -e
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
           cd /opt/cargo_front
-          rm -rf .next public .env.production next.config.mjs package.json
+          find . -maxdepth 1 ! -name 'node_modules' ! -name '.' -exec rm -rf {} +
           tar -xzf /tmp/deploy.tar.gz -C .
+          npm ci --omit=dev --ignore-scripts
           pm2 restart front || pm2 start npm --name front -- start
           EOF
