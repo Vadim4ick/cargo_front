@@ -77,6 +77,7 @@ const CargoModal: React.FC<CargoModalProps> = ({
     paymentStatus: "",
     payoutTerms: "",
     truckId: "",
+    cargoPhotos: [],
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -103,6 +104,7 @@ const CargoModal: React.FC<CargoModalProps> = ({
         paymentStatus: cargo.paymentStatus,
         payoutTerms: cargo.payoutTerms,
         truckId: cargo.truckId, // приводим к строке, если нужно
+        cargoPhotos: cargo.cargoPhotos ?? [],
       });
     } else {
       // Если нет cargo, сбрасываем все поля в дефолт
@@ -117,6 +119,7 @@ const CargoModal: React.FC<CargoModalProps> = ({
         paymentStatus: "",
         payoutTerms: "",
         truckId: "",
+        cargoPhotos: [],
       });
     }
   }, [cargo]);
@@ -147,19 +150,32 @@ const CargoModal: React.FC<CargoModalProps> = ({
         ? new Date(formData.loadUnloadDate).toISOString()
         : ""
     );
+
     formDate.append("transportationInfo", formData.transportationInfo);
+
     formDate.append("driver", formData.driver);
+
     if (formData.payoutAmount)
       formDate.append("payoutAmount", String(formData.payoutAmount));
+
     if (formData.payoutDate)
       formDate.append(
         "payoutDate",
         formData.payoutDate ? new Date(formData.payoutDate).toISOString() : ""
       );
+
     if (formData.paymentStatus)
       formDate.append("paymentStatus", formData.paymentStatus);
+
     if (formData.payoutTerms)
       formDate.append("payoutTerms", formData.payoutTerms);
+
+    if (files.length > 0) {
+      formDate.append("photos", files[0]);
+      // files.forEach((file) => {
+      // });
+    }
+
     formDate.append("truckId", formData.truckId);
 
     if (isEditMode) {

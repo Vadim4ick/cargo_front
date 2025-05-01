@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import React from "react";
 import {
   Dialog,
@@ -11,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Cargo } from "@/services/truck.service";
 import { useCargoById } from "@/hooks/useDeleteCargo";
 import { useProfile } from "@/store/profile";
+import { Download } from "lucide-react";
 
 interface CargoDetailsModalProps {
   isOpen: boolean;
@@ -31,7 +33,7 @@ export const CargoDetailsModal: React.FC<CargoDetailsModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] p-6">
+      <DialogContent className="sm:max-w-[600px] md:h-[700px] overflow-y-auto p-6">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center">
             Детали груза
@@ -87,6 +89,45 @@ export const CargoDetailsModal: React.FC<CargoDetailsModalProps> = ({
             </div>
           )}
         </div>
+        {cargo?.cargoPhotos && cargo.cargoPhotos?.length > 0 && (
+          <div className="mt-4">
+            <p className="mb-2 font-semibold">Загруженные файлы:</p>
+            <div className="flex flex-wrap gap-4">
+              {cargo.cargoPhotos?.map((file, index) => {
+                const isImage =
+                  file.url.endsWith(".jpg") || file.url.endsWith(".png");
+                return (
+                  <div
+                    key={index}
+                    className="rounded relative group" // Добавляем group для hover-эффекта
+                    style={{ width: 120, height: 120 }}
+                  >
+                    {isImage ? (
+                      <img
+                        src={`${process.env.NEXT_PUBLIC_SERVER_URL}/${file.url}`}
+                        alt="Фото груза"
+                        className="object-cover w-full h-full rounded"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center w-full h-full bg-gray-200 rounded">
+                        <span className="text-gray-500">Файл</span>
+                      </div>
+                    )}
+                    {/* Контейнер для иконки скачивания */}
+                    <a
+                      href={`${process.env.NEXT_PUBLIC_SERVER_URL}/${file.url}`}
+                      download
+                      className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded"
+                      title="Скачать файл"
+                    >
+                      <Download className="text-white text-2xl" />
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
         <DialogFooter className="mt-6">
           {profile?.role !== "USER" && (
             <DialogClose

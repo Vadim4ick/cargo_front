@@ -13,7 +13,12 @@ export interface Cargo {
   paymentStatus: string;
   payoutTerms: string;
   truckId: string;
-  // cargoPhoto?: File;
+  cargoPhotos?: CargoPhoto[];
+}
+
+interface CargoPhoto {
+  id: number;
+  url: string;
 }
 
 export interface Truck {
