@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Cargo, Truck } from "@/services/truck.service";
+import { Cargo, CargoPhotoNew, Truck } from "@/services/truck.service";
 import {
   Popover,
   PopoverContent,
@@ -41,11 +41,6 @@ interface CargoModalProps {
   cargo?: Cargo; // Если cargo передан – это режим редактирования
 }
 
-//
-// Предположим, что в интерфейсе Cargo поля date, loadUnloadDate, payoutDate уже Date
-// (или как минимум Cargo["date"] всегда приходят как объект Date от запроса).
-//
-
 const CargoModal: React.FC<CargoModalProps> = ({
   isOpen,
   onClose,
@@ -56,14 +51,12 @@ const CargoModal: React.FC<CargoModalProps> = ({
   const isEditMode = Boolean(cargo);
 
   // Состояние для файлов
-  const [files, setFiles] = useState<File[]>([]);
+  // const [files, setFiles] = useState<File[]>([]);
   // Реф для скрытого input
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Функция для удаления файла из списка
-  const handleRemoveFile = (index: number) => {
-    setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
-  };
+  // --------------- где-нибудь наверху состояния ----------------
+  const [deletedIds, setDeletedIds] = useState<string[]>([]);
 
   // Начальное состояние для формы
   const [formData, setFormData] = useState<AddCargo>({
@@ -84,10 +77,42 @@ const CargoModal: React.FC<CargoModalProps> = ({
 
   // Функция для обработки выбора файлов
   const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const filesArray = Array.from(e.target.files);
-      setFiles((prev) => [...prev, ...filesArray]);
-    }
+    if (!e.target.files) return;
+
+    const mapped: CargoPhotoNew[] = Array.from(e.target.files).map((f) => ({
+      file: f,
+      preview: URL.createObjectURL(f),
+      type: "new",
+    }));
+
+    setFormData((prev) => ({
+      ...prev,
+      cargoPhotos: [...(prev.cargoPhotos ?? []), ...mapped],
+    }));
+  };
+
+  // Функция для удаления файла из списка
+  const handleRemoveFile = (index: number) => {
+    setFormData((prev) => {
+      const target = prev.cargoPhotos?.[index];
+      if (!target) return prev; // нечего удалять
+
+      // 2. Если это уже сохранённое фото — добавляем его id в deletedIds
+      if (target.type === "stored") {
+        setDeletedIds((ids) => Array.from(new Set([...ids, target.id])));
+      }
+
+      // 3. Если это свежее фото — чистим blob-URL
+      if (target.type === "new") {
+        URL.revokeObjectURL(target.preview);
+      }
+
+      // 4. Возвращаем новое состояние с выкинутым элементом
+      return {
+        ...prev,
+        cargoPhotos: prev.cargoPhotos!.filter((_, i) => i !== index),
+      };
+    });
   };
 
   useEffect(() => {
@@ -170,10 +195,16 @@ const CargoModal: React.FC<CargoModalProps> = ({
     if (formData.payoutTerms)
       formDate.append("payoutTerms", formData.payoutTerms);
 
-    if (files.length > 0) {
-      formDate.append("photos", files[0]);
-      // files.forEach((file) => {
-      // });
+    const newFiles = formData.cargoPhotos?.filter((p) => p.type === "new");
+
+    if (newFiles) {
+      newFiles.forEach(({ file }) => {
+        formDate.append("photos", file);
+      });
+    }
+
+    if (deletedIds) {
+      deletedIds.forEach((id) => formDate.append("deletedIds", String(id)));
     }
 
     formDate.append("truckId", formData.truckId);
@@ -491,40 +522,46 @@ const CargoModal: React.FC<CargoModalProps> = ({
             </div>
           </div>
 
-          {files.length > 0 && (
+          {formData.cargoPhotos && formData.cargoPhotos.length > 0 && (
             <div className="mt-4">
-              <p className="mb-2 font-semibold">
-                Предпросмотр загруженных файлов:
-              </p>
+              <p className="mb-2 font-semibold">Предпросмотр файлов:</p>
+
               <div className="flex flex-wrap gap-4">
-                {files.map((file, index) => {
-                  const isImage = file.type.startsWith("image/");
-                  return (
-                    <div
-                      key={index}
-                      className="rounded relative"
-                      style={{ width: 120, height: 120 }}
+                {formData.cargoPhotos.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="relative rounded"
+                    style={{ width: 120, height: 120 }}
+                  >
+                    {item.type === "stored" ||
+                    item.file.type.startsWith("image/") ? (
+                      <img
+                        src={
+                          item.type === "stored"
+                            ? `${process.env.NEXT_PUBLIC_SERVER_URL}/${item.url}`
+                            : item.preview
+                        }
+                        alt={
+                          item.type === "stored" ? "Фото груза" : item.file.name
+                        }
+                        className="object-cover w-full h-full rounded"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center w-full h-full text-center text-sm">
+                        {item.file.name}
+                      </div>
+                    )}
+
+                    <button
+                      onClick={() => handleRemoveFile(idx)}
+                      className="absolute top-1 right-1 size-5 flex items-center justify-center
+                       rounded-full bg-red-500 text-white text-[10px] leading-none"
+                      title="Удалить"
                     >
-                      {isImage ? (
-                        <img
-                          src={URL.createObjectURL(file)}
-                          alt={file.name}
-                          className="object-cover w-full h-full"
-                        />
-                      ) : (
-                        <div className="flex items-center justify-center w-full h-full text-center text-sm">
-                          {file.name}
-                        </div>
-                      )}
-                      <Button
-                        onClick={() => handleRemoveFile(index)}
-                        className="absolute flex top-1 bg-red-500 text-[12px] right-1 size-[16px] p-0 flex-1"
-                      >
-                        ✕
-                      </Button>
-                    </div>
-                  );
-                })}
+                      ✕
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           )}

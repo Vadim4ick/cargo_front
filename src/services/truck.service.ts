@@ -13,13 +13,20 @@ export interface Cargo {
   paymentStatus: string;
   payoutTerms: string;
   truckId: string;
-  cargoPhotos?: CargoPhoto[];
+  cargoPhotos?: CargoPhotoUnion[];
 }
 
-interface CargoPhoto {
-  id: number;
+export interface CargoPhotoStored {
+  id: string;
   url: string;
+  type: "stored";
 }
+export interface CargoPhotoNew {
+  file: File;
+  preview: string;
+  type: "new";
+}
+type CargoPhotoUnion = CargoPhotoStored | CargoPhotoNew;
 
 export interface Truck {
   id: string;
@@ -48,9 +55,11 @@ class TruckServices {
     page: number;
     limit: number;
   }) {
-    return await $apiAuth.get<TruckCargos>(`${this._Truck}/${id}/cargos`, {
-      params: { page, limit },
-    });
+    return await $apiAuth
+      .get<TruckCargos>(`${this._Truck}/${id}/cargos`, {
+        params: { page, limit },
+      })
+      .then((res) => res.data);
   }
 }
 

@@ -93,38 +93,41 @@ export const CargoDetailsModal: React.FC<CargoDetailsModalProps> = ({
           <div className="mt-4">
             <p className="mb-2 font-semibold">Загруженные файлы:</p>
             <div className="flex flex-wrap gap-4">
-              {cargo.cargoPhotos?.map((file, index) => {
-                const isImage =
-                  file.url.endsWith(".jpg") || file.url.endsWith(".png");
-                return (
-                  <div
-                    key={index}
-                    className="rounded relative group" // Добавляем group для hover-эффекта
-                    style={{ width: 120, height: 120 }}
-                  >
-                    {isImage ? (
-                      <img
-                        src={`${process.env.NEXT_PUBLIC_SERVER_URL}/${file.url}`}
-                        alt="Фото груза"
-                        className="object-cover w-full h-full rounded"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center w-full h-full bg-gray-200 rounded">
-                        <span className="text-gray-500">Файл</span>
-                      </div>
-                    )}
-                    {/* Контейнер для иконки скачивания */}
-                    <a
-                      href={`${process.env.NEXT_PUBLIC_SERVER_URL}/${file.url}`}
-                      download
-                      className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded"
-                      title="Скачать файл"
+              {cargo.cargoPhotos
+                .filter((file) => file.type === "stored")
+                ?.map((file, index) => {
+                  const isImage =
+                    file.url.endsWith(".jpg") || file.url.endsWith(".png");
+
+                  return (
+                    <div
+                      key={index}
+                      className="rounded relative group" // Добавляем group для hover-эффекта
+                      style={{ width: 120, height: 120 }}
                     >
-                      <Download className="text-white text-2xl" />
-                    </a>
-                  </div>
-                );
-              })}
+                      {isImage ? (
+                        <img
+                          src={`${process.env.NEXT_PUBLIC_SERVER_URL}/${file.url}`}
+                          alt="Фото груза"
+                          className="object-cover w-full h-full rounded"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center w-full h-full bg-gray-200 rounded">
+                          <span className="text-gray-500">Файл</span>
+                        </div>
+                      )}
+                      {/* Контейнер для иконки скачивания */}
+                      <a
+                        href={`${process.env.NEXT_PUBLIC_SERVER_URL}/${file.url}`}
+                        download
+                        className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded"
+                        title="Скачать файл"
+                      >
+                        <Download className="text-white text-2xl" />
+                      </a>
+                    </div>
+                  );
+                })}
             </div>
           </div>
         )}
