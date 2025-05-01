@@ -527,41 +527,49 @@ const CargoModal: React.FC<CargoModalProps> = ({
               <p className="mb-2 font-semibold">Предпросмотр файлов:</p>
 
               <div className="flex flex-wrap gap-4">
-                {formData.cargoPhotos.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="relative rounded"
-                    style={{ width: 120, height: 120 }}
-                  >
-                    {item.type === "stored" ||
-                    item.file.type.startsWith("image/") ? (
-                      <img
-                        src={
-                          item.type === "stored"
-                            ? `${process.env.NEXT_PUBLIC_SERVER_URL}/${item.url}`
-                            : item.preview
-                        }
-                        alt={
-                          item.type === "stored" ? "Фото груза" : item.file.name
-                        }
-                        className="object-cover w-full h-full rounded"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center w-full h-full text-center text-sm">
-                        {item.file.name}
-                      </div>
-                    )}
+                {formData.cargoPhotos.map((item, idx) => {
+                  const isStored = item.type === "stored";
+                  const isImage = isStored
+                    ? /\.(png|jpe?g|gif|webp|bmp)$/i.test(item.url)
+                    : item.file.type.startsWith("image/");
 
-                    <button
-                      onClick={() => handleRemoveFile(idx)}
-                      className="absolute top-1 right-1 size-5 flex items-center justify-center
-                       rounded-full bg-red-500 text-white text-[10px] leading-none"
-                      title="Удалить"
+                  return (
+                    <div
+                      key={idx}
+                      className="relative rounded"
+                      style={{ width: 120, height: 120 }}
                     >
-                      ✕
-                    </button>
-                  </div>
-                ))}
+                      {isImage ? (
+                        <img
+                          src={
+                            item.type === "stored"
+                              ? `${process.env.NEXT_PUBLIC_SERVER_URL}/${item.url}`
+                              : item.preview
+                          }
+                          alt={
+                            item.type === "stored"
+                              ? "Фото груза"
+                              : item.file.name
+                          }
+                          className="object-cover w-full h-full rounded"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center w-full h-full bg-gray-200 rounded">
+                          <span className="text-gray-500">Файл</span>
+                        </div>
+                      )}
+
+                      <button
+                        onClick={() => handleRemoveFile(idx)}
+                        className="absolute top-1 right-1 size-5 flex items-center justify-center
+                     rounded-full bg-red-500 text-white text-[10px] leading-none"
+                        title="Удалить"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

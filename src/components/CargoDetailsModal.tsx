@@ -96,13 +96,12 @@ export const CargoDetailsModal: React.FC<CargoDetailsModalProps> = ({
               {cargo.cargoPhotos
                 .filter((file) => file.type === "stored")
                 ?.map((file, index) => {
-                  const isImage =
-                    file.url.endsWith(".jpg") || file.url.endsWith(".png");
+                  const isImage = /\.(png|jpe?g|gif|webp|bmp)$/i.test(file.url);
 
                   return (
                     <div
                       key={index}
-                      className="rounded relative group" // Добавляем group для hover-эффекта
+                      className="rounded relative group"
                       style={{ width: 120, height: 120 }}
                     >
                       {isImage ? (
